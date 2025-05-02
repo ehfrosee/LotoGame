@@ -45,7 +45,7 @@ class LottoCard:
                 number_string = ' ' * (item_length - 1)
             return number_string
 
-        title = f'Карточка игрока: {player_name}'
+        title = f'\nКарточка игрока: {player_name}'
         line_1 = f'{title:^{total_length}}'
         line_2 = '-' * (total_length + 2)
         lines = ['| ' + ' '.join([num_str(num) for num in card_line]) + ' |' for card_line in self.card]
@@ -74,16 +74,16 @@ class Kegs:
     """
 
     def __init__(self, max_number=90):
-        self.__kegs = list(range(1, max_number + 1))
-        random.shuffle(self.__kegs)
+        self.kegs = list(range(1, max_number + 1))
+        random.shuffle(self.kegs)
 
     def get_keg(self):
         try:
-            random.shuffle(self.__kegs)
-            keg = self.__kegs.pop()
+            random.shuffle(self.kegs)
+            keg = self.kegs.pop()
         except:
             keg = 0
-        print(f'\nНовый бочонок: {keg} (осталось {len(self.__kegs)})')
+        print(f'\nНовый бочонок: {keg} (осталось {len(self.kegs)})')
         return keg
 
 

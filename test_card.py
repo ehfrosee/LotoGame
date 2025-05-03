@@ -67,11 +67,18 @@ def test_closed(fix2, fix3):
 def test_kegs(keg_number):
     kegs = Kegs(keg_number)
     kegs_test = []
-    k = kegs.get_keg()
+    k = kegs.keg
     while k:
         kegs_test.append(k)
-        k = kegs.get_keg()
+        k = kegs.keg
     assert set(kegs_test) == set(range(1, keg_number + 1))
+
+def test_kegs_eq():
+    kegs1 = Kegs()
+    kegs2 = Kegs()
+    assert kegs1 == kegs2
+    k = kegs1.keg
+    assert kegs1 != kegs2
 
 
 @pytest.fixture
@@ -97,7 +104,7 @@ def test_comp_step_last(fix2):
 
 
 @pytest.mark.parametrize('num, name, y, result', (
-[41, 'Человек', 'д', 0], [41, 'Человек', 'н', -1], [51, 'Человек', 'д', -1], [51, 'Человек', 'н', 0]))
+        [41, 'Человек', 'д', 0], [41, 'Человек', 'н', -1], [51, 'Человек', 'д', -1], [51, 'Человек', 'н', 0]))
 def test_human_step(fix4, num, name, y, result):
     with mock.patch('builtins.input', lambda x: name):
         player = PlayerHuman()
@@ -113,7 +120,6 @@ def test_human_step_last(fix2, num, name, y, result):
     player.card = fix2
     with mock.patch('builtins.input', lambda x: y):
         assert player.step(num) is result, 'Error'
-
 
 
 @pytest.fixture
@@ -141,6 +147,7 @@ def test_game(fix5, num, y, result):
     with mock.patch('builtins.input', lambda x: y):
         assert fix5.play_round() is result, 'Error'
 
+
 @pytest.fixture
 def fix6():
     with mock.patch('builtins.input', lambda x: "name"):
@@ -165,3 +172,39 @@ def test_game_draw(fix6, num, y, result):
     fix6.kegs.kegs = [num]
     with mock.patch('builtins.input', lambda x: y):
         assert fix6.play_round() is result, 'Error'
+
+
+@pytest.fixture
+def fix7():
+    new_card = LottoCard()
+    new_card.card = [[4, 14, 0, 0, 41, 0, 61, 73, 0],
+                     [11, 0, 0, 0, 0, 55, 65, 74, 86],
+                     [0, 0, 0, 36, 0, 59, 70, 76, 89]]
+    return new_card
+
+
+@pytest.fixture
+def fix8():
+    new_card = LottoCard()
+    new_card.card = [[4, 14, 0, 0, 41, 0, 61, 73, 0],
+                     [11, 0, 0, 0, 0, 55, 65, 74, 86],
+                     [0, 0, 0, 36, 0, 59, 70, 76, 89]]
+    return new_card
+
+
+def test_len(fix2):
+    assert len(fix2) == 1, 'Ошибка длины'
+
+
+def test_card_eq(fix7, fix8):
+    assert fix7 == fix8, 'Ошибка сравнения'
+
+
+def test_card_eq2(fix2, fix8):
+    assert fix2 != fix8, 'Ошибка сравнения'
+
+def test_card_gt(fix2, fix8):
+    assert fix2 > fix8, 'Ошибка сравнения'
+
+def test_card_lt(fix2, fix8):
+    assert fix8 < fix2, 'Ошибка сравнения'

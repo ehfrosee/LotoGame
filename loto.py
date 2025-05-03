@@ -17,7 +17,8 @@ class LottoCard:
     __emptynum = 0
     __crossednum = -1
 
-    def __init__(self):
+    def __init__(self, player_name="Игрок"):
+        self.player_name = player_name
         self.card = [[None for i in range(self.__cols)] for i in range(self.__rows)]
         self.new_card()
 
@@ -31,7 +32,8 @@ class LottoCard:
             for j in range(self.__cols):
                 self.card[i][j] = self.__emptynum if j in emptys[i] else cards[i][j]
 
-    def print_card(self, player_name="Игрок"):
+    def __str__(self):
+        # def print_card(self, player_name="Игрок"):
         # Вывод содержимого карточки на экран
         item_length = 4
         total_length = item_length * self.__cols + 1
@@ -45,15 +47,17 @@ class LottoCard:
                 number_string = ' ' * (item_length - 1)
             return number_string
 
-        title = f'\nКарточка игрока: {player_name}'
+        title = f'\nКарточка игрока: {self.player_name}'
         line_1 = f'{title:^{total_length}}'
         line_2 = '-' * (total_length + 2)
         lines = ['| ' + ' '.join([num_str(num) for num in card_line]) + ' |' for card_line in self.card]
         lines.insert(0, line_2)
         lines.insert(0, line_1)
         lines.append(line_2)
-        for line in lines:
-            print(line)
+        card_string = '\n'.join(lines)
+        return card_string
+        # for line in lines:
+        #     print(line)
 
     def chek_number(self, number):
         # Проверка числа в карточке, вычёркивание его
@@ -64,9 +68,28 @@ class LottoCard:
                 return True
         return False
 
-
     def closed(self):
         return {set(ci) == {-1, 0} for ci in self.card} == {True}
+
+    def __len__(self):
+        nums = {num for row in self.card for num in row} - {0, -1}
+        return len(nums)
+
+    def __eq__(self, other):
+        if isinstance(other, LottoCard):
+            return len(self) == len(other)
+        return False
+
+    def __gt__(self, other):
+        if isinstance(other, LottoCard):
+            return len(self) < len(other)
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, LottoCard):
+            return len(self) > len(other)
+        return False
+
 
 class Kegs:
     """
@@ -76,14 +99,25 @@ class Kegs:
     def __init__(self, max_number=90):
         self.kegs = list(range(1, max_number + 1))
         random.shuffle(self.kegs)
+        self._keg = 0
 
-    def get_keg(self):
+    def __str__(self):
+        keg = self._keg if self._keg > 0 else "нет"
+        return f'\nНовый бочонок: {keg} (осталось {len(self.kegs)})'
+
+    def __eq__(self, other):
+        return set(self.kegs) == set(other.kegs)
+
+    @property
+    def keg(self):
         try:
             random.shuffle(self.kegs)
             keg = self.kegs.pop()
+            self._keg = keg
         except:
             keg = 0
-        print(f'\nНовый бочонок: {keg} (осталось {len(self.kegs)})')
+            self._keg = keg
+        print(self)
         return keg
 
 
@@ -93,17 +127,27 @@ class Player:
     """
 
     def __init__(self, name='Игрок'):
-        self.card = LottoCard()
+        self.card = LottoCard(name)
         self.player_name = name
 
+    def __str__(self):
+        return self.player_name
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
     def step(self, number):
-        self.card.print_card(self.player_name)
+        print(self.card)
+        # self.card.print_card(self.player_name)
         return self.card.chek_number(number)
 
+
 class PlayerComputer(Player):
+    __count = 1
 
     def __init__(self):
-        super().__init__('Компьютер')
+        super().__init__(name=f'Компьютер №{PlayerComputer.__count}')
+        PlayerComputer.__count += 1
 
     def step(self, number):
         if super().step(number):
@@ -115,6 +159,7 @@ class PlayerComputer(Player):
         else:
             print('Номера нет в карточке')
             return 0
+
 
 class PlayerHuman(Player):
 
@@ -153,11 +198,21 @@ class Game:
         #self.player_2 = PlayerComputer()
         self.player_2 = PlayerHuman()
 
+    def __str__(self):
+        if self.player_1.card > self.player_2.card:
+            report = f"\nИгрок {self.player_1} ведёт\n"
+        if self.player_1.card < self.player_2.card:
+            report = f"\nИгрок {self.player_2} ведёт\n"
+        if self.player_1.card == self.player_2.card:
+            report = f"\nИгроки идут ровно\n"
+        return report
+
     def play_round(self):
-        keg = self.kegs.get_keg()
+        keg = self.kegs.keg
         score_1 = self.player_1.step(keg)
         score_2 = self.player_2.step(keg)
         if score_1 == 0 and score_2 == 0:
+            print(self)
             return 0
         elif (score_1 == 1 and score_2 == 0) or score_2 == -1:
             return 1
@@ -167,6 +222,7 @@ class Game:
             return 3
         else:
             return -1
+
 
 if __name__ == '__main__':
     game = Game()
